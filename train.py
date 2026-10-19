@@ -1,0 +1,115 @@
+from pathlib import Path
+
+import torch
+from torch import nn
+from torch.utils.data import DataLoader, Subset
+from torchvision import transforms
+
+from datasets import FlowerDataset, split_indices
+from models import ResNet50
+from engine import train_one_epoch, evaluate
+
+import time
+
+
+def main():
+    project_dir = Path(__file__).resolve().parent
+
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+    ])
+
+    dataset = FlowerDataset(
+        project_dir / "flower_photos",
+        transform=transform,
+    )
+    # 每一张图片的索引
+    train_indices, val_indices, test_indices = split_indices(dataset.samples)
+
+    train_dataset = Subset(dataset, train_indices)
+    val_dataset = Subset(dataset, val_indices)
+    test_dataset = Subset(dataset, test_indices)
+
+    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=4, pin_memory=True, persistent_workers=True)
+    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=0)
+    test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=0)
+
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "cpu"
+    )
+
+    model = ResNet50(num_classes=len(dataset.class_names)).to(device)
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
+
+    num_epochs = 20
+    best_val_acc = -1.0
+    best_epoch = 0
+
+    save_dir = project_dir / "checkpoints"
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    checkpoint_path = save_dir / "best.pt"
+
+    for epoch in range(1, num_epochs + 1):
+        print(f"\n开始第 {epoch}/{num_epochs} 轮")
+
+        start_time = time.perf_counter()
+
+        train_loss, train_acc = train_one_epoch(
+            model,
+            loader=train_loader,
+            criterion=criterion,
+            optimizer=optimizer,
+            device=device
+        )
+
+        val_loss, val_acc = evaluate(
+            model,
+            loader=val_loader,
+            criterion=criterion,
+            device=device
+        )
+
+        print(
+            f"第 {epoch}/{num_epochs} 轮 | "
+            f"训练损失 {train_loss:.4f}，准确率 {train_acc:.2%} | "
+            f"验证损失 {val_loss:.4f}，准确率 {val_acc:.2%}"
+        )
+
+        elapsed = time.perf_counter() - start_time
+        print(f"本轮总耗时：{elapsed:.2f} 秒")
+
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            best_epoch = epoch
+            # 保存模型
+            checkpoint = {
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "val_loss": val_loss,
+                "val_acc": val_acc,
+                "class_names": dataset.class_names,
+                "class_to_idx": dataset.class_to_idx,
+            }
+
+            torch.save(checkpoint, checkpoint_path)
+
+            print(
+                f"已保存最佳模型：第 {epoch} 轮，"
+                f"验证准确率 {val_acc:.2%}"
+            )
+
+    print(
+        f"\n最佳验证准确率：{best_val_acc:.2%}，"
+        f"来自第 {best_epoch} 轮"
+    )
+    print(f"模型保存位置：{checkpoint_path}")
+    print("模型文件已生成：", checkpoint_path.is_file())
+
+
+if __name__ == '__main__':
+    main()

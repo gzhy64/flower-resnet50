@@ -1,0 +1,11 @@
+name: flower
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - "numpy>=2,<3"
+      - "pillow>=12,<13"
+
+

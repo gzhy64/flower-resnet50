@@ -1,0 +1,20 @@
+# 图片数据集
+/ flower_photos/
+
+# 训练权重及检查点
+/checkpoints*/
+*.pt
+*.pth
+*.ckpt
+
+# python 缓存
+__pycache__/
+*.py[cod]
+
+# 编辑器与系统文件
+.idea/
+.DS_Store
+
+# 本地环境变量
+.env
+.env.*
