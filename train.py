@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 
 import torch
 from torch import nn
@@ -10,8 +11,7 @@ from datasets import FlowerDataset, split_indices
 from models import ResNet50
 from engine import train_one_epoch, evaluate
 from config import TrainConfig
-
-import time
+from experiment import create_experiment, append_metrics
 
 
 def main():
@@ -39,8 +39,6 @@ def main():
         batch_size=config.batch_size,
         shuffle=True,
         num_workers=config.num_workers,
-        pin_memory=True,
-        persistent_workers=True
     )
     val_loader = DataLoader(
         val_dataset,
@@ -71,15 +69,14 @@ def main():
     best_val_acc = -1.0
     best_epoch = 0
 
-    save_dir = project_dir / "checkpoints"
-    save_dir.mkdir(parents=True, exist_ok=True)
+    # 设置保存实验数据路径
+    run_dir = create_experiment(project_dir, config)
+    checkpoint_path = run_dir / "best.pt"
+    print(f"本次实验目录：{run_dir}")
 
-    checkpoint_path = save_dir / "best.pt"
-
+    start_time = time.perf_counter()
     for epoch in range(1, num_epochs + 1):
         print(f"\n开始第 {epoch}/{num_epochs} 轮")
-
-        start_time = time.perf_counter()
 
         train_loss, train_acc = train_one_epoch(
             model,
@@ -102,8 +99,16 @@ def main():
             f"验证损失 {val_loss:.4f}，准确率 {val_acc:.2%}"
         )
 
-        elapsed = time.perf_counter() - start_time
-        print(f"本轮总耗时：{elapsed:.2f} 秒")
+        append_metrics(
+            run_dir,
+            {
+                "epoch": epoch,
+                "train_loss": train_loss,
+                "train_acc": train_acc,
+                "val_loss": val_loss,
+                "val_acc": val_acc,
+            }
+        )
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
@@ -127,12 +132,16 @@ def main():
                 f"验证准确率 {val_acc:.2%}"
             )
 
+    elapsed = time.perf_counter() - start_time
+    print(f"{num_epochs} 轮总耗时：{elapsed:.2f} 秒")
+
+
     print(
         f"\n最佳验证准确率：{best_val_acc:.2%}，"
         f"来自第 {best_epoch} 轮"
     )
     print(f"模型保存位置：{checkpoint_path}")
-    print("模型文件已生成：", checkpoint_path.is_file())
+
 
 
 if __name__ == '__main__':
