@@ -4,16 +4,19 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, Subset
 from torchvision import transforms
+from dataclasses import asdict
 
 from datasets import FlowerDataset, split_indices
 from models import ResNet50
 from engine import train_one_epoch, evaluate
+from config import TrainConfig
 
 import time
 
 
 def main():
     project_dir = Path(__file__).resolve().parent
+    config = TrainConfig()
 
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -31,9 +34,26 @@ def main():
     val_dataset = Subset(dataset, val_indices)
     test_dataset = Subset(dataset, test_indices)
 
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=4, pin_memory=True, persistent_workers=True)
-    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=0)
-    test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False, num_workers=0)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=config.batch_size,
+        shuffle=True,
+        num_workers=config.num_workers,
+        pin_memory=True,
+        persistent_workers=True
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=config.batch_size,
+        shuffle=False,
+        num_workers=config.num_workers,
+    )
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=config.batch_size,
+        shuffle=False,
+        num_workers=config.num_workers,
+    )
 
     device = torch.device(
         "cuda" if torch.cuda.is_available() else "cpu"
@@ -42,9 +62,12 @@ def main():
     model = ResNet50(num_classes=len(dataset.class_names)).to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
+    optimizer = torch.optim.SGD(
+        model.parameters(),
+        lr=config.learning_rate,
+    )
 
-    num_epochs = 20
+    num_epochs = config.num_epochs
     best_val_acc = -1.0
     best_epoch = 0
 
@@ -85,7 +108,7 @@ def main():
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             best_epoch = epoch
-            # 保存模型
+            # 保存检查点
             checkpoint = {
                 "epoch": epoch,
                 "model_state_dict": model.state_dict(),
@@ -94,6 +117,7 @@ def main():
                 "val_acc": val_acc,
                 "class_names": dataset.class_names,
                 "class_to_idx": dataset.class_to_idx,
+                "train_config": asdict(config),
             }
 
             torch.save(checkpoint, checkpoint_path)
