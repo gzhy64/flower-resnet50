@@ -13,21 +13,10 @@ def parse_args():
         description="使用指定 ResNet50 模型预测单张图片"
     )
 
-    parser.add_argument(
-        "--checkpoint",
-        type=Path,
-        required=True,
-        help="模型检查点文件路径",
-    )
-    parser.add_argument(
-        "--image",
-        type=Path,
-        required=True,
-        help="待预测图片路径",
-    )
+    parser.add_argument("--checkpoint", type=Path, required=True, help="模型检查点文件路径")
+    parser.add_argument("--image", type=Path, required=True, help="待预测图片路径")
 
     return parser.parse_args()
-
 
 
 def main():

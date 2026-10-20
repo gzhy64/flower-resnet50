@@ -1,5 +1,6 @@
 from pathlib import Path
 import time
+import argparse
 
 import torch
 from torch import nn
@@ -14,9 +15,32 @@ from config import TrainConfig
 from experiment import create_experiment, append_metrics
 
 
+def parse_args():
+    defaults = TrainConfig()
+
+    parser = argparse.ArgumentParser(
+        description="训练 ResNet50 花卉分类模型"
+    )
+
+    parser.add_argument("--epochs",type=int,default=defaults.num_epochs, help="训练轮数")
+    parser.add_argument("--batch-size", type=int, default=defaults.batch_size, help="每个批次的图片数量")
+    parser.add_argument("--lr", type=float, default=defaults.learning_rate, help="学习率")
+    parser.add_argument("--num-workers", type=int, default=defaults.num_workers, help="数据加载使用的工作进程数量")
+
+    return parser.parse_args()
+
 def main():
+    args = parse_args()
+
+    config = TrainConfig(
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+        learning_rate=args.lr,
+        num_epochs=args.epochs,
+    )
+
     project_dir = Path(__file__).resolve().parent
-    config = TrainConfig()
+    print("本次训练配置：", config)
 
     transform = transforms.Compose([
         transforms.Resize((224, 224)),

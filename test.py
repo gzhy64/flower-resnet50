@@ -16,12 +16,7 @@ def parse_args():
         description="评估指定 ResNet50 模型的测试集表现"
     )
 
-    parser.add_argument(
-        "--checkpoint",
-        type=Path,
-        required=True,
-        help="模型检查点文件路径",
-    )
+    parser.add_argument("--checkpoint", type=Path, required=True, help="模型检查点文件路径")
 
     return parser.parse_args()
 
