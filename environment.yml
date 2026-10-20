@@ -7,5 +7,6 @@ dependencies:
   - pip:
       - "numpy>=2,<3"
       - "pillow>=12,<13"
+      - "matplotlib==3.10.8"
 
 
