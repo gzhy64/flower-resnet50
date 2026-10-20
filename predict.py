@@ -1,4 +1,5 @@
 from pathlib import Path
+import argparse
 
 import torch
 from PIL import Image
@@ -7,10 +8,35 @@ from torchvision import transforms
 from models import ResNet50
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="使用指定 ResNet50 模型预测单张图片"
+    )
+
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        required=True,
+        help="模型检查点文件路径",
+    )
+    parser.add_argument(
+        "--image",
+        type=Path,
+        required=True,
+        help="待预测图片路径",
+    )
+
+    return parser.parse_args()
+
+
 
 def main():
-    project_dir = Path(__file__).resolve().parent
-    checkpoint_path = project_dir / "checkpoints" / "best.pt"
+    args = parse_args()
+
+    checkpoint_path = args.checkpoint.resolve()
+    image_path = args.image.resolve()
+
+    print("使用的模型文件：", checkpoint_path)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -29,8 +55,6 @@ def main():
     print("模型保存轮次：", checkpoint["epoch"])
     print(f"保存的验证准确率：{checkpoint['val_acc']:.2%}")
     print("类别顺序：", class_names)
-
-    image_path = (project_dir / "flower_photos" / "daisy" / "4065883015_4bb6010cb7_n.jpg")
 
     transform = transforms.Compose([
         transforms.Resize((224, 224)),

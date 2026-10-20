@@ -1,4 +1,5 @@
 from pathlib import Path
+import argparse
 
 import torch
 from torch import nn
@@ -10,9 +11,28 @@ from engine import evaluate
 from models import ResNet50
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="评估指定 ResNet50 模型的测试集表现"
+    )
+
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        required=True,
+        help="模型检查点文件路径",
+    )
+
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+
     project_dir = Path(__file__).resolve().parent
-    checkpoint_path = project_dir / "checkpoints" / "best.pt"
+    checkpoint_path = args.checkpoint.resolve()
+
+    print("使用的模型文件：", checkpoint_path)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -62,9 +82,6 @@ def main():
 
     print(f"测试集平均损失：{test_loss:.4f}")
     print(f"测试集准确率：{test_acc:.2%}")
-
-
-
 
 
 if __name__ == '__main__':
