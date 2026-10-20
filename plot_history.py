@@ -37,15 +37,20 @@ def plot_history(history, output_path):
     train_accs = [metrics["train_acc"] * 100 for metrics in history]
     val_accs = [metrics["val_acc"] * 100 for metrics in history]
 
+    best_metrics = max(history, key=lambda metrics: metrics["val_acc"])
+    best_epoch = best_metrics["epoch"]
+    best_val_acc = best_metrics["val_acc"] * 100
+
     fig, axes = plt.subplots(1,2, figsize=(12, 4), layout="constrained")
 
     axes[0].plot(epochs, train_losses, label="Train")
     axes[0].plot(epochs, val_losses, label="Validation")
     axes[0].set_title("Loss")
-    axes[0].set_ylabel("Cross-entry loss")
+    axes[0].set_ylabel("Cross-entropy loss")
 
     axes[1].plot(epochs, train_accs, label="Train")
     axes[1].plot(epochs, val_accs, label="Validation")
+    axes[1].scatter(best_epoch, best_val_acc, color="red", s=60, zorder=3, label=f"Best val: {best_val_acc:.2f}% (epoch {best_epoch})")
     axes[1].set_title("Accuracy")
     axes[1].set_ylabel("Accuracy (%)")
     axes[1].set_ylim(0, 100)
