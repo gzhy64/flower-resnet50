@@ -53,8 +53,10 @@ def main():
 
     # 训练时添加数据增强
     train_transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.RandomResizedCrop(size=224, scale=(0.8, 1.0)),
         transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(degrees=10),  # 改变图片旋转角度
+        transforms.ColorJitter(brightness=0.15, contrast=0.15, saturation=0.1),
         transforms.ToTensor(),
     ])
 
@@ -113,6 +115,14 @@ def main():
     optimizer = torch.optim.SGD(
         model.parameters(),
         lr=config.learning_rate,
+        momentum=config.momentum,
+        weight_decay=config.weight_decay,
+    )
+    # 学习率调度器
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=config.num_epochs,
+        eta_min=config.min_lr
     )
 
     num_epochs = config.num_epochs
@@ -126,7 +136,11 @@ def main():
 
     start_time = time.perf_counter()
     for epoch in range(1, num_epochs + 1):
-        print(f"\n开始第 {epoch}/{num_epochs} 轮")
+        epoch_lr = optimizer.param_groups[0]["lr"]
+        print(
+            f"\n开始第 {epoch}/{num_epochs} 轮，"
+            f"学习率：{epoch_lr:.6f}"
+        )
 
         train_loss, train_acc = train_one_epoch(
             model,
@@ -142,6 +156,7 @@ def main():
             criterion=criterion,
             device=device
         )
+        scheduler.step()
 
         print(
             f"第 {epoch}/{num_epochs} 轮 | "
@@ -168,6 +183,7 @@ def main():
                 "epoch": epoch,
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
+                "scheduler_state_dict": scheduler.state_dict(),
                 "val_loss": val_loss,
                 "val_acc": val_acc,
                 "class_names": dataset.class_names,
