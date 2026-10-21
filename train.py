@@ -1,12 +1,14 @@
 from pathlib import Path
 import time
 import argparse
+import random
 
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, Subset
 from torchvision import transforms
 from dataclasses import asdict
+import numpy as np
 
 from datasets import FlowerDataset, split_indices
 from models import ResNet50
@@ -26,8 +28,10 @@ def parse_args():
     parser.add_argument("--batch-size", type=int, default=defaults.batch_size, help="每个批次的图片数量")
     parser.add_argument("--lr", type=float, default=defaults.learning_rate, help="学习率")
     parser.add_argument("--num-workers", type=int, default=defaults.num_workers, help="数据加载使用的工作进程数量")
+    parser.add_argument("--seed", type=int, default=defaults.seed, help="训练随机种子")
 
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
@@ -37,24 +41,46 @@ def main():
         num_workers=args.num_workers,
         learning_rate=args.lr,
         num_epochs=args.epochs,
+        seed=args.seed,
     )
+    # 固定种子
+    random.seed(config.seed)
+    np.random.seed(config.seed)
+    torch.manual_seed(config.seed)
 
     project_dir = Path(__file__).resolve().parent
     print("本次训练配置：", config)
 
-    transform = transforms.Compose([
+    # 训练时添加数据增强
+    train_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ToTensor(),
+    ])
+
+    # 验证不添加数据增强
+    eval_transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
     ])
 
     dataset = FlowerDataset(
         project_dir / "flower_photos",
-        transform=transform,
+        transform=eval_transform,
     )
+
+    train_source = FlowerDataset(
+        project_dir / "flower_photos",
+        transform=train_transform,
+    )
+
+    if train_source.samples != dataset.samples:
+        raise ValueError("训练与评估数据的样本顺序不一致")
+
     # 每一张图片的索引
     train_indices, val_indices, test_indices = split_indices(dataset.samples)
 
-    train_dataset = Subset(dataset, train_indices)
+    train_dataset = Subset(train_source, train_indices)
     val_dataset = Subset(dataset, val_indices)
     test_dataset = Subset(dataset, test_indices)
 
