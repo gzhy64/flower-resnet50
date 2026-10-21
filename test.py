@@ -11,6 +11,11 @@ from engine import evaluate
 from models import ResNet50
 
 
+"""
+    用法：python test.py --checkpoint runs/20261021_172653
+"""
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="评估指定 ResNet50 模型的测试集表现"
@@ -25,7 +30,7 @@ def main():
     args = parse_args()
 
     project_dir = Path(__file__).resolve().parent
-    checkpoint_path = args.checkpoint.resolve()
+    checkpoint_path = args.checkpoint.resolve() / "best.pt"
 
     print("使用的模型文件：", checkpoint_path)
 

@@ -11,6 +11,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
+
+"""
+    用法：python test.py --run_dir runs/20261021_172653
+"""
+
+
 def read_history(history_path):
     history = []
 
