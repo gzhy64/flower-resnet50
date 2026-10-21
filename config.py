@@ -7,6 +7,7 @@ class TrainConfig:
     num_workers: int = 0
     learning_rate: float = 0.01
     num_epochs: int = 20
+    seed: int = 42
 
 
 if __name__ == '__main__':
