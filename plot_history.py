@@ -3,6 +3,9 @@ import csv
 from pathlib import Path
 
 import matplotlib
+from matplotlib.ticker import MaxNLocator
+from sympy.codegen.ast import integer
+
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
@@ -41,7 +44,7 @@ def plot_history(history, output_path):
     best_epoch = best_metrics["epoch"]
     best_val_acc = best_metrics["val_acc"] * 100
 
-    fig, axes = plt.subplots(1,2, figsize=(12, 4), layout="constrained")
+    fig, axes = plt.subplots(1,2, figsize=(14, 4.5), layout="constrained")
 
     axes[0].plot(epochs, train_losses, label="Train")
     axes[0].plot(epochs, val_losses, label="Validation")
@@ -57,7 +60,9 @@ def plot_history(history, output_path):
 
     for ax in axes:
         ax.set_xlabel("Epoch")
-        ax.set_xticks(epochs)
+        ax.set_xlim(epochs[0], epochs[-1])
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=20, integer=True))
+        ax.tick_params(axis="x", rotation=45, labelsize=10)
         ax.legend()
         ax.grid(alpha=0.3)
 
