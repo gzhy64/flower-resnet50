@@ -1,0 +1,11 @@
+{
+  "batch_size": 16,
+  "num_workers": 2,
+  "learning_rate": 0.0005,
+  "num_epochs": 150,
+  "seed": 2026,
+  "momentum": 0.9,
+  "weight_decay": 0.0005,
+  "min_lr": 1e-07,
+  "label_smoothing": 0.1
+}
