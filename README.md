@@ -159,7 +159,7 @@ python plot_history.py \
 每次训练创建一个以时间命名的实验目录，例如：
 
 ```text
-runs/20261021_213701/
+runs/20261021_202511/
 ├── config.json
 ├── history.csv
 ├── best.pt
