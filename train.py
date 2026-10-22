@@ -115,13 +115,28 @@ def main():
     train_criterion = nn.CrossEntropyLoss(label_smoothing=config.label_smoothing)
 
     val_criterion = nn.CrossEntropyLoss()
-
-    optimizer = torch.optim.SGD(
+    # 使用SGD
+    # optimizer = torch.optim.SGD(
+    #     model.parameters(),
+    #     lr=config.learning_rate,
+    #     momentum=config.momentum,
+    #     weight_decay=config.weight_decay,
+    # )
+    # 使用adam
+    # optimizer = torch.optim.Adam(
+    #     model.parameters(),
+    #     lr=config.learning_rate,
+    #     betas=(0.9, 0.999),
+    #     weight_decay=config.weight_decay,
+    # )
+    # 使用adamw
+    optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=config.learning_rate,
-        momentum=config.momentum,
+        betas=(0.9, 0.999),
         weight_decay=config.weight_decay,
     )
+
     # 学习率调度器
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer,
@@ -143,7 +158,7 @@ def main():
         epoch_lr = optimizer.param_groups[0]["lr"]
         print(
             f"\n开始第 {epoch}/{num_epochs} 轮，"
-            f"学习率：{epoch_lr:.6f}"
+            f"学习率：{epoch_lr:.7f}"
         )
 
         train_loss, train_acc = train_one_epoch(
