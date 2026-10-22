@@ -22,7 +22,7 @@ def parse_args():
 def main():
     args = parse_args()
 
-    checkpoint_path = args.checkpoint.resolve()
+    checkpoint_path = args.checkpoint.resolve() / "best.pt"
     image_path = args.image.resolve()
 
     print("使用的模型文件：", checkpoint_path)
