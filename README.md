@@ -26,6 +26,8 @@ flower-class/
 ```
 
 ## 2. 数据集划分
+数据集下载
+http://download.tensorflow.org/example_images/flower_photos.tgz
 
 当前使用约 80% / 10% / 10% 的比例，分别作为训练集、验证集和测试集。
 
