@@ -4,7 +4,6 @@ from pathlib import Path
 
 import matplotlib
 from matplotlib.ticker import MaxNLocator
-from sympy.codegen.ast import integer
 
 matplotlib.use("Agg")
 
