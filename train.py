@@ -80,7 +80,7 @@ def main():
         raise ValueError("训练与评估数据的样本顺序不一致")
 
     # 每一张图片的索引
-    train_indices, val_indices, test_indices = split_indices(dataset.samples)
+    train_indices, val_indices, test_indices = split_indices(dataset.samples, seed=config.seed)
 
     train_dataset = Subset(train_source, train_indices)
     val_dataset = Subset(dataset, val_indices)
@@ -111,7 +111,11 @@ def main():
 
     model = ResNet50(num_classes=len(dataset.class_names)).to(device)
 
-    criterion = nn.CrossEntropyLoss()
+    # 训练使用标签平滑
+    train_criterion = nn.CrossEntropyLoss(label_smoothing=config.label_smoothing)
+
+    val_criterion = nn.CrossEntropyLoss()
+
     optimizer = torch.optim.SGD(
         model.parameters(),
         lr=config.learning_rate,
@@ -145,7 +149,7 @@ def main():
         train_loss, train_acc = train_one_epoch(
             model,
             loader=train_loader,
-            criterion=criterion,
+            criterion=train_criterion,
             optimizer=optimizer,
             device=device
         )
@@ -153,7 +157,7 @@ def main():
         val_loss, val_acc = evaluate(
             model,
             loader=val_loader,
-            criterion=criterion,
+            criterion=val_criterion,
             device=device
         )
         scheduler.step()

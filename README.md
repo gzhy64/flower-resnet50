@@ -187,17 +187,17 @@ python -m pip install torch==2.7.1 torchvision==0.22.1 --index-url https://downl
 
 ### 6.1 当前默认参数
 
-| 参数 | 默认值 | 含义 |
-|---|---:|---|
-| `batch_size` | 8 | 每个训练批次的图片数量 |
-| `num_workers` | 0 | 数据加载工作进程数量 |
-| `learning_rate` | 0.0005 | 初始学习率 |
-| `num_epochs` | 20 | 训练轮数 |
-| `seed` | 2026 | 训练随机种子 |
-| `momentum` | 0.9 | SGD 动量 |
-| `weight_decay` | 0.0005 | 权重衰减 |
-| `min_lr` | 0.000001 | 余弦退火的最低学习率 |
-| `label_smoothing` | 0.1 | 训练标签平滑系数 |
+| 参数 |       默认值 | 含义 |
+|---|----------:|---|
+| `batch_size` |        16 | 每个训练批次的图片数量 |
+| `num_workers` |         2 | 数据加载工作进程数量 |
+| `learning_rate` |    0.0005 | 初始学习率 |
+| `num_epochs` |       100 | 训练轮数 |
+| `seed` |      2026 | 训练随机种子 |
+| `momentum` |       0.9 | SGD 动量 |
+| `weight_decay` |    0.0005 | 权重衰减 |
+| `min_lr` | 0.0000001 | 余弦退火的最低学习率 |
+| `label_smoothing` |       0.1 | 训练标签平滑系数 |
 
 命令行支持覆盖训练轮数、批次大小、初始学习率、工作进程数量和训练随机种子。其他参数在配置文件中设置。
 
